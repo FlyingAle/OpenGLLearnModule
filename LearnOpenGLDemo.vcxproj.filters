@@ -36,9 +36,6 @@
     <ClCompile Include="GLCamera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="LightWindow.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LearnDemo.h">
@@ -65,6 +62,12 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="VShader-Light.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="Light_FragmentShader.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="Light_VerticesShader.glsl">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

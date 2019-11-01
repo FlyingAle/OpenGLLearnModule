@@ -129,7 +129,7 @@ void GLCamera::processScrollInput(GLFWwindow* windows, double xoffset, double yo
 {
 	if (this->fov >=1.0f && this->fov <= 45.0f)
 	{
-		fov -= yoffset;
+		fov -= yoffset * 0.05f;
 	}
 	if (this->fov <= 1.0f)
 	{

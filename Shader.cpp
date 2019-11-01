@@ -1,5 +1,8 @@
 #include "Shader.h"
 
+#include <glm\fwd.hpp>
+
+
 
 Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {
@@ -62,6 +65,11 @@ void Shader::setInt(const std::string& name, int value) const
 void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::setVec3(const std::string& name, float x, float y, float z) const
+{
+	glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 }
 
 unsigned int Shader::loadShader(const char* shader, GLint shader_type)

@@ -48,7 +48,7 @@ private:
 	glm::vec3 default_camera_up;
 	glm::vec3 cameraFront;
 
-	glm::mat4 camera_look_at;
+	glm::mat4 camera_look_at = glm::mat4();
 
 	bool firstMouse = true;
 

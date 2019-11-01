@@ -130,7 +130,6 @@
     <ClCompile Include="..\..\glad\src\glad.c" />
     <ClCompile Include="GLCamera.cpp" />
     <ClCompile Include="LearnDemo.cpp" />
-    <ClCompile Include="LightWindow.cpp" />
     <ClCompile Include="MatrixUtils.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -145,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FShader.glsl" />
+    <None Include="Light_FragmentShader.glsl" />
+    <None Include="Light_VerticesShader.glsl" />
     <None Include="VShader-Light.glsl" />
     <None Include="VShader.glsl" />
   </ItemGroup>
