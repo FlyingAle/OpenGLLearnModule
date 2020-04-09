@@ -26,6 +26,10 @@ public:
 	void processScrollInput(GLFWwindow* windows, double xoffset, double yoffset);
 
 	float get_camera_fov();
+
+	glm::vec3 get_camera_pos();
+
+	glm::vec3 get_camera_front();
 private:
 	float deltaTime = 0.0f;
 	float lastTime = 0.0f;

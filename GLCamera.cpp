@@ -46,7 +46,7 @@ void GLCamera::processInput(GLFWwindow* windows)
 		this->cameraPos += glm::normalize(glm::cross(this->cameraFront, this->cameraUp)) * cameraSpeed;
 	}
 
-	cameraPos.y = 0;
+	//cameraPos.y = 0;
 	this->createLookAtMat();
 }
 
@@ -144,6 +144,16 @@ void GLCamera::processScrollInput(GLFWwindow* windows, double xoffset, double yo
 float GLCamera::get_camera_fov()
 {
 	return this->fov;
+}
+
+glm::vec3 GLCamera::get_camera_pos()
+{
+	return this->cameraPos;
+}
+
+glm::vec3 GLCamera::get_camera_front()
+{
+	return this->cameraFront;
 }
 
 void GLCamera::createLookAtMat()

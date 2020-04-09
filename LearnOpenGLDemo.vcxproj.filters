@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ShaderEntity">
+      <UniqueIdentifier>{e5555ef3-b675-4271-bdd8-9be126b8a674}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\glad\src\glad.c">
@@ -36,6 +39,9 @@
     <ClCompile Include="GLCamera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SpotLight.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LearnDemo.h">
@@ -51,6 +57,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -76,6 +85,15 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="test_texture2.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="container2.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="container2_specular.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="lighting_maps_specular_color.png">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

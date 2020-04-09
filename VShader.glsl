@@ -9,10 +9,12 @@ out vec2 ourTexCoord;//向片段着色器输出一个纹理
 
 out vec3 Normal;
 
-out vec3 outFragPos;
+out vec3 FragPos;
 
 uniform float xOffset;
 uniform float yOffset;
+
+
 
 uniform mat4 transform;
 
@@ -26,7 +28,7 @@ void main()
 {
     ourColor = aColor; // 将ourColor设置为我们从顶点数据那里得到的输入颜色
 	ourTexCoord = aTexCoord;
-	Normal = aNormal;
-	outFragPos = model * vec4(aPos,1.0);//变换为世界空间坐标
-	gl_Position =  projection * view * outFragPos;
+	Normal = mat3(transpose(inverse(model))) * aNormal;//创建法线矩阵 法线矩阵计算方式: 模型矩阵左上角的逆矩阵的转置矩阵
+	FragPos = vec3( model * vec4(aPos,1.0));//变换为世界空间坐标
+	gl_Position =  projection * view * model * vec4(aPos,1.0);
 }

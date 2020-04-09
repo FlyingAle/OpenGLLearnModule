@@ -3,9 +3,12 @@
 #include <iostream>
 #include <memory>
 #include <stb_image.h>
+
+
 #include "Shader.h"
 #include "MatrixUtils.h"
 #include "GLCamera.h"
+#include "SpotLight.h"
 
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> // glm::vec3
@@ -30,7 +33,7 @@ void processInput(GLFWwindow* window);
 
 unsigned int createTexId();
 
-unsigned int createTexture(std::string imgPath);
+unsigned int createTexture(std::string imgPath,bool isPng);
 
 float texCoords[] = {
 	0.0f, 0.0f, // 左下角
@@ -93,17 +96,17 @@ float vertices[] = {
 
 
 
-	glm::vec3 cubePositions[] = {
-  glm::vec3(0.0f,  0.0f,  0.0f),
-  glm::vec3(2.0f,  5.0f, -15.0f),
-  glm::vec3(-1.5f, -2.2f, -2.5f),
-  glm::vec3(-3.8f, -2.0f, -12.3f),
-  glm::vec3(2.4f, -0.4f, -3.5f),
-  glm::vec3(-1.7f,  3.0f, -7.5f),
-  glm::vec3(1.3f, -2.0f, -2.5f),
-  glm::vec3(1.5f,  2.0f, -2.5f),
-  glm::vec3(1.5f,  0.2f, -1.5f),
-  glm::vec3(-1.3f,  1.0f, -1.5f)
+glm::vec3 cubePositions[] = {
+glm::vec3(0.0f,  0.0f,  0.0f),
+glm::vec3(2.0f,  5.0f, -15.0f),
+glm::vec3(-1.5f, -2.2f, -2.5f),
+glm::vec3(-3.8f, -2.0f, -12.3f),
+glm::vec3(2.4f, -0.4f, -3.5f),
+glm::vec3(-1.7f,  3.0f, -7.5f),
+glm::vec3(1.3f, -2.0f, -2.5f),
+glm::vec3(1.5f,  2.0f, -2.5f),
+glm::vec3(1.5f,  0.2f, -1.5f),
+glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 unsigned int indices[] = {
@@ -111,9 +114,22 @@ unsigned int indices[] = {
 	1, 2, 3  // second triangle
 };
 
+glm::vec3 pointLightPosition[] = {
+	glm::vec3(0.7f,0.2f,2.0f),
+	glm::vec3(2.3f,-3.3f,-4.0f),
+	glm::vec3(-4.0f,2.0f,-12.0f),
+	glm::vec3(0.0f,0.0f,-3.0f)
+};
+
 std::shared_ptr<GLCamera> current_camera;
 
 glm::vec3 lightPos = glm::vec3(1.5f, 6.0f, 2.0f);
+
+glm::vec3 lightColor = glm::vec3(1.0f);
+
+glm::vec3 lightDirction = glm::vec3(-0.2f, -1.0f, -0.3f);
+
+using namespace OpenGLEntity;
 
 
 int main() {
@@ -140,24 +156,26 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(current_window, framebuffer_size_callback);
 
-	glfwSetInputMode(current_window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(current_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
 
 
-	auto glProgram = std::make_shared<Shader>("VShader.glsl", "FShader.glsl");
+	auto glProgram = OpenGLEntity::Shader::create("VShader.glsl", "FShader.glsl");
 
-	auto glLightProgram = std::make_shared<Shader>("Light_VerticesShader.glsl","Light_FragmentShader.glsl");
+	auto glLightProgram = std::make_shared<Shader>("Light_VerticesShader.glsl", "Light_FragmentShader.glsl");
 
 	auto matrix_utils = std::make_shared<MatrixUtils>();
 
 	auto light_matrix = std::make_shared<MatrixUtils>();
 
-	auto gl_camera = std::make_shared<GLCamera>(0.0f,0.0f,3.0f,400,300);
+	auto gl_camera = std::make_shared<GLCamera>(0.0f, 0.0f, 3.0f, 400, 300);
+
+	auto spotLightEntity = OpenGLEntity::SpotLight::create(glProgram, "light");
 
 	current_camera = gl_camera;
 
-	gl_camera->setCameraTarget(0.0f,0.0f,0.0f);
+	gl_camera->setCameraTarget(0.0f, 0.0f, 0.0f);
 	//设置鼠标位置捕捉回调
 	glfwSetCursorPosCallback(current_window, mouse_callback);
 
@@ -175,8 +193,16 @@ int main() {
 
 	unsigned int transform_mat_loca;
 
-	textureId_1 = createTexture("test_texture.jpg");
-	textureId_2 = createTexture("test_texture2.jpg");
+	textureId_1 = createTexture("test_texture.jpg",false);
+	textureId_2 = createTexture("test_texture2.jpg",false);
+
+	unsigned int diffuse_texture;
+
+	diffuse_texture = createTexture("container2.png",true);
+
+	unsigned int specular_texture;
+
+	specular_texture = createTexture("lighting_maps_specular_color.png", true);
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &EBO);
@@ -247,8 +273,35 @@ int main() {
 
 	float opacityPercent = 0.1f;
 
-	glProgram->setVec3("lightPos",lightPos.x,lightPos.y,lightPos.z);
-	glProgram->setVec3("lightColor",1.0f,1.0f,1.0f);
+
+
+
+	//设置渲染材质
+	glProgram->setInt("material.diffuse", 2);
+	glProgram->setInt("material.specular", 3);
+	glProgram->setFloat("material.shininess", 0.1f);
+
+	for (int i = 0; i < 4; i++)
+	{
+		std::string lightname = "pointLights";
+		lightname += ("[" + std::to_string(i) + "]");
+		glProgram->setFloat(lightname + ".constant", 1.0f);
+		glProgram->setVec3(lightname + ".position", pointLightPosition[i].x,pointLightPosition[i].y,pointLightPosition[i].z);
+		glProgram->setVec3(lightname + ".ambient", 0.05f, 0.05f, 0.05f);
+		glProgram->setVec3(lightname + ".diffuse", 0.8f, 0.8f, 0.8f);
+		glProgram->setVec3(lightname + ".specular", 1.0f, 1.0f, 1.0f);
+		glProgram->setFloat(lightname + ".linear", 0.09f);
+		glProgram->setFloat(lightname + ".quadratic", 0.032f);
+	}
+
+	glProgram->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+	glProgram->setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+	glProgram->setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+	glProgram->setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+
+
+
 
 	while (!glfwWindowShouldClose(current_window)) {
 		processInput(current_window);
@@ -273,13 +326,37 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, textureId_1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textureId_2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, specular_texture);
 		glProgram->use();
-		glUniform1f(opacityPercentLocation, opacityPercent/10);
+		glUniform1f(opacityPercentLocation, opacityPercent / 10);
+
+		spotLightEntity->setPosition(gl_camera->get_camera_pos().x, gl_camera->get_camera_pos().y, gl_camera->get_camera_pos().z);
+		spotLightEntity->setDirection(gl_camera->get_camera_front().x, gl_camera->get_camera_front().y, gl_camera->get_camera_front().z);
+		spotLightEntity->setOuterCutOff(glm::cos(glm::radians(17.5f)));
+		spotLightEntity->setAmbient(lightColor.x * 0.2f, lightColor.y * 0.2f, lightColor.z * 0.2f);
+		spotLightEntity->setDiffuse(lightColor.x * 0.5f, lightColor.y * 0.5f, lightColor.z * 0.5f);
+		spotLightEntity->setSpecular(lightColor.x, lightColor.y, lightColor.z);
+		spotLightEntity->setConstant(1.0f);
+		spotLightEntity->setLinear(0.09f);
+		spotLightEntity->setQuadratic(0.032f);
+		spotLightEntity->setCutOff(glm::cos(glm::radians(12.5f)));
+
+
+		glProgram->setVec3("lightColor", lightColor.x, lightColor.y, lightColor.z);
+
+
+
+
+
+
 
 
 		//matrix = matrix * matrix_utils->trans(opacityPercent / 40, 0.0f, 0.0f);
 		//glUniformMatrix4fv(transform_mat_loca, 1, GL_FALSE, glm::value_ptr(matrix));
-		
+
 		//glUniformMatrix4fv(glGetUniformLocation(glProgram->ID, "view"), 1, GL_FALSE, glm::value_ptr(matrix_utils->trans(0.0f, 0.0f, -3.0f)));
 		float radius = 15.0f;
 		float camX = sin(glfwGetTime()) * radius;
@@ -290,12 +367,16 @@ int main() {
 		glUniformMatrix4fv(glGetUniformLocation(glProgram->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(glProgram->ID, "projection"), 1, GL_FALSE, glm::value_ptr(glm::perspective(gl_camera->get_camera_fov(), 800.0f / 600.0f, 0.1f, 100.0f)));
 		glBindVertexArray(VAO);
+		//为镜面光照设置观察者位置
+		glm::vec3 cameraPos = gl_camera->get_camera_pos();
+		glProgram->setVec3("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		for (unsigned int i = 0; i < 10; i++)
 		{
-			glm::mat4 matrix = matrix_utils->rotate(glm::radians((i+1) * (i+1) * 0.1f * 20.0f) * glfwGetTime() , 1.0f, 0.3f, 0.5f);
+			glm::mat4 matrix = matrix_utils->rotate(glm::radians((i + 1) * (i + 1) * 0.1f * 20.0f) * glfwGetTime(), 1.0f, 0.3f, 0.5f);
 			matrix = matrix * matrix_utils->trans(cubePositions[i]);
 			glUniformMatrix4fv(glGetUniformLocation(glProgram->ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		opacityPercent = opacityPercent + 0.1;
@@ -305,20 +386,34 @@ int main() {
 		}
 
 
+
+
+
+
 		glLightProgram->use();
 		glm::mat4 lightView = gl_camera->lookAt();
 		glUniformMatrix4fv(glGetUniformLocation(glLightProgram->ID, "view"), 1, GL_FALSE, glm::value_ptr(lightView));
 		glUniformMatrix4fv(glGetUniformLocation(glLightProgram->ID, "projection"), 1, GL_FALSE, glm::value_ptr(glm::perspective(gl_camera->get_camera_fov(), 800.0f / 600.0f, 0.1f, 100.0f)));
 		glBindVertexArray(lightVAO);
-		glm::mat4 lightMatrix = light_matrix->scale(0.2f,0.2f,0.2f);
+		glm::mat4 lightMatrix = light_matrix->scale(0.2f, 0.2f, 0.2f);
 		lightMatrix = lightMatrix * light_matrix->trans(lightPos);
 		glUniformMatrix4fv(glGetUniformLocation(glLightProgram->ID, "model"), 1, GL_FALSE, glm::value_ptr(lightMatrix));
+
+
+		glLightProgram->setVec3("lightColor", lightColor.x, lightColor.y, lightColor.z);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		lightPos.x = (1.0f + sin(glfwGetTime()) * 2.0f) + 1.5f;
+		lightPos.y = (sin(glfwGetTime() / 2.0f) * 1.0f) + 6.0f;
 
 
 
 
 		glUseProgram(0);
+
+		//lightColor.x = sin(glfwGetTime() * 2.0f);
+		//lightColor.y = sin(glfwGetTime() * 0.7f);
+		//lightColor.z = sin(glfwGetTime() * 1.3f);
 
 		glfwSwapBuffers(current_window);
 		glfwPollEvents();
@@ -339,15 +434,31 @@ int main() {
 	return 0;
 }
 
-unsigned int createTexture(std::string imgPath) {
+unsigned int createTexture(std::string imgPath,bool isPng) {
 	unsigned int textureId = createTexId();
 
 	int width, height, nrChannels;
-	unsigned char* data = stbi_load(imgPath.c_str(), &width, &height, &nrChannels, 0);
+	//在加载PNG图片的时候,需要将最后的参数设置为STBI_rgb; 否则会出现纹理加载样式错误的问题
+	unsigned char* data = stbi_load(imgPath.c_str(), &width, &height, &nrChannels, isPng? STBI_rgb : 0);
 
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		GLenum format;
+		switch (nrChannels)
+		{
+		case 1:
+			format = GL_RED;
+			break;
+		case 3:
+			format = GL_RGB;
+			break;
+		case 4:
+			format = GL_RGBA;
+			break;
+		default:
+			break;
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else

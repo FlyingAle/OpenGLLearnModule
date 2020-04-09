@@ -132,6 +132,7 @@
     <ClCompile Include="LearnDemo.cpp" />
     <ClCompile Include="MatrixUtils.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TexWindow.cpp" />
   </ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="MatrixUtils.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SpotLight.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FShader.glsl" />
@@ -150,6 +152,9 @@
     <None Include="VShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="container2.png" />
+    <Image Include="container2_specular.png" />
+    <Image Include="lighting_maps_specular_color.png" />
     <Image Include="test_texture.jpg" />
     <Image Include="test_texture2.jpg" />
   </ItemGroup>

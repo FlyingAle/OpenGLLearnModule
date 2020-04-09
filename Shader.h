@@ -8,29 +8,40 @@
 #include <sstream>
 #include <iostream>
 #include <glm\fwd.hpp>
+#include <memory>
 #pragma once
-class Shader
-{
-public:
 
-	unsigned int ID;
+namespace OpenGLEntity {
 
-	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
-	~Shader();
-	void use();
 
-	void setBool(const std::string &name,bool value) const;
-	void setInt(const std::string &name, int value) const;
-	void setFloat(const std::string& name, float value) const;
+	class Shader
+	{
+	public:
+		static std::shared_ptr<Shader> create(const GLchar* vertexPath, const GLchar* fragmentPath);
+	public:
 
-	void setVec3(const std::string& name, float x, float y, float z) const;
-	
-private:
+		unsigned int ID;
 
-	unsigned int loadShader(const char* shader, GLint shader_type);
-	unsigned int createGLProgram(unsigned int shader_id, unsigned int fragment_id);
-	bool checkSuccess(unsigned int shader_id);
-};
+		Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+		~Shader();
+		void use();
+
+		void setBool(const std::string& name, bool value) const;
+		void setInt(const std::string& name, int value) const;
+		void setFloat(const std::string& name, float value) const;
+
+		void setVec3(const std::string& name, float x, float y, float z) const;
+
+	private:
+
+		unsigned int loadShader(const char* shader, GLint shader_type);
+		unsigned int createGLProgram(unsigned int shader_id, unsigned int fragment_id);
+		bool checkSuccess(unsigned int shader_id);
+	};
+	typedef std::shared_ptr<Shader> GLProgramPtr;
+}
+
+
 
 #endif
 
